@@ -26,10 +26,17 @@ def upload():
         img_io = io.BytesIO()
         img.save(img_io, 'JPEG', quality=100)
         img_io.seek(0)
-        r = requests.post('http://127.0.0.1:5000/process_image', files={'file': img_io.getvalue()})
-        print(r.text)
-
-        return "OK"
+        print('Sending image for background removal....')
+        r = requests.post('http://127.0.0.1:5001/remove_background_api', files={'file': img_io.getvalue()})
+        print('Received response back from server.......')
+        print(r.content)
+        returned_img = io.BytesIO(r.content)
+        returned_img.seek(0)
+        #returned_img = returned_img.read()
+        returned_image = Image.open(returned_img)
+        returned_image.save('./static/uploads/upload.png')
+        print('Sending file to browser......')
+    return send_file('./static/uploads/upload.png', mimetype='image/png', as_attachment='True')
 
 
 
@@ -41,5 +48,17 @@ def process_image():
         img.save('./static/uploads/upload.jpg')
     return "OK"
 
+@app.route('/receive_image', methods=['POST'])
+def receive_image():
+    if request.method == 'POST':
+        print("Post received")
+        img = Image.open(request.files['file'].stream)
+        img.save('./static/uploads/upload.png')
+        img_io = io.BytesIO()
+        img.save(img_io, 'PNG', quality=100)
+        img_io.seek(0)
+        print('Sending File......')
+    return send_file(img_io, mimetype='image/png', as_attachment='True', attachment_filename='upload.png')
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='127.0.0.1',port='5000')
