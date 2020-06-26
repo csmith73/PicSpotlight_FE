@@ -59,8 +59,8 @@ def upload():
         print('Sending file to browser......')
         global global_file_name
         global_file_name = download_file_name
-        download_html_path = '/downloads/'+download_file_name
-    return render_template('index.html', filename=download_html_path)
+        download_html_path = '/static/downloads/'+download_file_name
+    return download_html_path
     #return send_file('./static/upload.png', mimetype='image/png', as_attachment='True')
     #return render_template('index.html')
 
