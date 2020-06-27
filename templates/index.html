@@ -50,11 +50,11 @@
                                           id="image_dropzone_upload"></form>
                                 </div>
                                 <div id="imgDiv">
-                                    <a class="btn-primary btn rounded-pill px-4 ml-lg-4"
-                                       href={{ url_for('test_download') }}>Download Image<i
+                                    <a class="btn-primary btn rounded-pill px-4 ml-lg-4" id="downloadButton"
+                                       >Download Image<i
                                             class="fas fa-arrow-right ml-1"></i></a>
                                     <img id='bg_img' src=""/>
-                                    <p>{{ url_for('static', filename=filename) }}</p>
+
                                 </div>
 
                             </div>
@@ -127,9 +127,20 @@
             this.on('success', function (file, resp) {
                 console.log('dropzone sucess func called.....')
                 console.log(resp)
+                var download_url = resp.split("/");
+                    img_file_name = download_url[3];
+                    console.log(img_file_name)
                 var x = document.getElementById("imgDiv");
                 x.style.display = "block";
-                document.getElementById("bg_img").src=resp;
+                img_url_base = '/static/downloads_preview/'
+                img_src = img_url_base.concat(img_file_name)
+                console.log(img_src)
+                document.getElementById("bg_img").src=img_src;
+
+                var url_base = '/download/'
+                download_url = url_base.concat(img_file_name)
+                console.log(download_url)
+                document.getElementById("downloadButton").setAttribute("href",download_url);
             });
         },
 
