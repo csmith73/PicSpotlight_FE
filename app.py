@@ -59,6 +59,8 @@ def upload():
             preview_img = img
             preview_img.thumbnail([600,600], Image.ANTIALIAS)
             preview_img.save(upload_preview_file_path + upload_file_name)
+        else:
+            img.save(upload_preview_file_path + upload_file_name)
 
 
         print('Sending image for background removal....')
@@ -77,6 +79,8 @@ def upload():
             preview_img_down = returned_image
             preview_img_down.thumbnail([400,400], Image.ANTIALIAS)
             preview_img_down.save(download_preview_file_path + download_file_name)
+        else:
+            returned_image.save(download_preview_file_path + download_file_name)
 
         print('Sending file to browser......')
         # if img_size_down > .25:
