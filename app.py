@@ -62,7 +62,7 @@ def upload():
 
 
         print('Sending image for background removal....')
-        r = requests.post('http://127.0.0.1:5001/remove_background_api', files={'file': img_io.getvalue()})
+        r = requests.post('http://api.picspotlight.com/remove_background_api', files={'file': img_io.getvalue()})
         print('Received response back from server.......')
         #print(r.content)
         returned_img = io.BytesIO(r.content)
