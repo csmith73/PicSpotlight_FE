@@ -59,9 +59,10 @@ def upload():
             preview_img = img
             preview_img.thumbnail([600,600], Image.ANTIALIAS)
             preview_img.save(upload_preview_file_path + upload_file_name)
+            preview_img.close()
         else:
             img.save(upload_preview_file_path + upload_file_name)
-
+        img.close()
 
         print('Sending image for background removal....')
         r = requests.post('http://api.picspotlight.com/remove_background_api', files={'file': img_io.getvalue()})
@@ -79,6 +80,7 @@ def upload():
             preview_img_down = returned_image
             preview_img_down.thumbnail([400,400], Image.ANTIALIAS)
             preview_img_down.save(download_preview_file_path + download_file_name)
+            preview_img_down.close()
         else:
             returned_image.save(download_preview_file_path + download_file_name)
 
@@ -88,6 +90,8 @@ def upload():
         # else:
         #     download_html_path = '/static/downloads/' + download_file_name
         download_html_path = '/static/downloads/' + download_file_name
+        returned_img.close()
+
     return download_html_path
     #return send_file('./static/upload.png', mimetype='image/png', as_attachment='True')
     #return render_template('index.html')
