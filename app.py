@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import weakref
 import uuid
-
+import time
 from PIL import Image
 import io
 
@@ -27,6 +27,13 @@ global_file_name = ''
 def index():
     return render_template('index.html')
 
+@app.route('/logs')
+def logs():
+    #f = open('Background_Remove_Log.log')
+    #f.read()
+    with open('gunicorn.log', 'r') as f:
+        return render_template('logs.html', text=f.read())
+
 @app.route('/download/<img_name>')
 def test_download(img_name):
     print('Test Download called.....')
@@ -42,9 +49,10 @@ def test_download(img_name):
 
 @app.route('/uploads', methods=['GET', 'POST'])
 def upload():
-
+    upload_start_time = time.time()
     if request.method == 'POST':
         img = Image.open(request.files['file'].stream)
+        app.logger.debug("image.open: %s seconds ---" % (time.time() - upload_start_time))
         width, height = img.size
         img_size = (width * height)/1000000
         print(img_size)
@@ -52,34 +60,45 @@ def upload():
         upload_file_name = file_name + '.jpg'
         download_file_name = file_name + '.png'
         img.save(upload_file_path + upload_file_name)
+        app.logger.debug("image.save: %s seconds ---" % (time.time() - upload_start_time))
         img_io = io.BytesIO()
         img.save(img_io, 'JPEG', quality=100)
+        app.logger.debug("bytes io image save: %s seconds ---" % (time.time() - upload_start_time))
         img_io.seek(0)
         if img_size > .25:
             preview_img = img
             preview_img.thumbnail([600,600], Image.ANTIALIAS)
+            app.logger.debug("create image preview: %s seconds ---" % (time.time() - upload_start_time))
             preview_img.save(upload_preview_file_path + upload_file_name)
+            app.logger.debug("save image preview: %s seconds ---" % (time.time() - upload_start_time))
             preview_img.close()
         else:
             img.save(upload_preview_file_path + upload_file_name)
+            app.logger.debug("save image upload when its smallr than preview: %s seconds ---" % (time.time() - upload_start_time))
         img.close()
 
         print('Sending image for background removal....')
         r = requests.post('http://api.picspotlight.com/remove_background_api', files={'file': img_io.getvalue()})
+        app.logger.debug("post request complete: %s seconds ---" % (time.time() - upload_start_time))
         print('Received response back from server.......')
         #print(r.content)
         returned_img = io.BytesIO(r.content)
+        app.logger.debug("bytes io convert returned image: %s seconds ---" % (time.time() - upload_start_time))
         returned_img.seek(0)
         #returned_img = returned_img.read()
         returned_image = Image.open(returned_img)
+        app.logger.debug("image open returned image: %s seconds ---" % (time.time() - upload_start_time))
         width, height = returned_image.size
         img_size_down = (width * height) / 1000000
         print(img_size_down)
         returned_image.save(download_file_path + download_file_name)
+        app.logger.debug("image.save returned image: %s seconds ---" % (time.time() - upload_start_time))
         if img_size_down > .25:
             preview_img_down = returned_image
-            preview_img_down.thumbnail([400,400], Image.ANTIALIAS)
+            preview_img_down.thumbnail([600,600], Image.ANTIALIAS)
+            app.logger.debug("thumbnail create from returned image: %s seconds ---" % (time.time() - upload_start_time))
             preview_img_down.save(download_preview_file_path + download_file_name)
+            app.logger.debug("image.save thumbnail of returned image: %s seconds ---" % (time.time() - upload_start_time))
             preview_img_down.close()
         else:
             returned_image.save(download_preview_file_path + download_file_name)
