@@ -11,11 +11,14 @@ from PIL import Image
 import io
 
 app = Flask(__name__)
-
-gunicorn_error_logger = logging.getLogger('gunicorn.error')
-app.logger.handlers.extend(gunicorn_error_logger.handlers)
-app.logger.setLevel(logging.DEBUG)
-app.logger.debug('this will show in the log')
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+# gunicorn_error_logger = logging.getLogger('gunicorn.error')
+# app.logger.handlers.extend(gunicorn_error_logger.handlers)
+# app.logger.setLevel(logging.DEBUG)
+# app.logger.debug('this will show in the log')
 
 upload_file_path = './static/uploads/'
 download_file_path = './static/downloads/'
