@@ -11,8 +11,8 @@ from PIL import Image
 import io
 import numpy as np
 import cv2
-from numpy.lib.npyio import NpzFile
-from pymatting import *
+
+
 
 app = Flask(__name__)
 if __name__ != '__main__':
