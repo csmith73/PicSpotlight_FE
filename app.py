@@ -11,6 +11,7 @@ from PIL import Image
 import io
 import numpy as np
 import cv2
+from numpy.lib.npyio import NpzFile
 
 
 
@@ -67,6 +68,7 @@ def upload():
     upload_start_time = time.time()
     if request.method == 'POST':
         img = Image.open(request.files['file'].stream)
+        upload_img = img
         app.logger.debug("image.open: %s seconds ---" % (time.time() - upload_start_time))
         width, height = img.size
         img_size = (width * height)/1000000
@@ -75,48 +77,90 @@ def upload():
         upload_file_name = file_name + '.jpg'
         download_file_name = file_name + '.png'
         img.save(upload_file_path + upload_file_name)
+        print('1')
+        print(upload_img.size)
+
+        newsize = (320,320)
+        post_image = img.resize(newsize)
         app.logger.debug("image.save: %s seconds ---" % (time.time() - upload_start_time))
         img_io = io.BytesIO()
-        img.save(img_io, 'JPEG', quality=100)
+        post_image.save(img_io, 'JPEG', quality=100)
         app.logger.debug("bytes io image save: %s seconds ---" % (time.time() - upload_start_time))
         img_io.seek(0)
+        print('2')
+        print(upload_img.size)
         if img_size > .25:
             preview_img = img
             preview_img.thumbnail([600,600], Image.ANTIALIAS)
             app.logger.debug("create image preview: %s seconds ---" % (time.time() - upload_start_time))
             preview_img.save(upload_preview_file_path + upload_file_name)
             app.logger.debug("save image preview: %s seconds ---" % (time.time() - upload_start_time))
-            preview_img.close()
+
         else:
             img.save(upload_preview_file_path + upload_file_name)
             app.logger.debug("save image upload when its smallr than preview: %s seconds ---" % (time.time() - upload_start_time))
-        img.close()
 
+        print('3')
+        print(upload_img.size)
         print('Sending image for background removal....')
-        r = requests.post('http://picspotlight.com/remove_background_api', files={'file': img_io.getvalue()})
+        r = requests.post('http://127.0.0.1:5001/remove_background_api', files={'file': img_io.getvalue()})
         app.logger.debug("post request complete: %s seconds ---" % (time.time() - upload_start_time))
         print('Received response back from server.......')
-        #print(r.content)
-        returned_img = io.BytesIO(r.content)
-        app.logger.debug("bytes io convert returned image: %s seconds ---" % (time.time() - upload_start_time))
-        returned_img.seek(0)
+        print(r.content)
+        print(upload_img.size)
+        ret_arr = io.BytesIO(r.content)
+        ret_arr.seek(0)
+        ret = NpzFile(ret_arr, own_fid=True, allow_pickle=True)
+        print(ret.files)
+        print(ret['A'].shape)
+
+
+        im = Image.fromarray(ret['A'] * 255).convert('RGB')
+        pil_to_cv_img = Image.open(upload_file_path + file_name + '.jpg')
+        # im_np = np.array(im)
+        w, h = pil_to_cv_img.size
+        print(pil_to_cv_img.size)
+        imo = im.resize((w, h), resample=Image.BILINEAR)
+        pb_np = np.array(imo)
+
+
+        opencv_image = cv2.cvtColor(np.array(pil_to_cv_img), cv2.COLOR_RGB2BGRA)
+        foreground = opencv_image
+        b, g, r = cv2.split(pb_np)
+        foreground[:, :, 3] = b
+        foreground = cv2.cvtColor(foreground, cv2.COLOR_BGRA2RGBA)
+        foreground_pil = Image.fromarray(foreground)
+
+
+
+
+
+
+
+
+
+
+
+        #returned_img = io.BytesIO(r.content)
+        #app.logger.debug("bytes io convert returned image: %s seconds ---" % (time.time() - upload_start_time))
+        #returned_img.seek(0)
         #returned_img = returned_img.read()
-        returned_image = Image.open(returned_img)
-        app.logger.debug("image open returned image: %s seconds ---" % (time.time() - upload_start_time))
-        width, height = returned_image.size
+        #returned_image = Image.open(returned_img)
+        #app.logger.debug("image open returned image: %s seconds ---" % (time.time() - upload_start_time))
+        width, height = foreground_pil.size
         img_size_down = (width * height) / 1000000
         print(img_size_down)
-        returned_image.save(download_file_path + download_file_name)
+        foreground_pil.save(download_file_path + download_file_name)
         app.logger.debug("image.save returned image: %s seconds ---" % (time.time() - upload_start_time))
         if img_size_down > .25:
-            preview_img_down = returned_image
+            preview_img_down = foreground_pil
             preview_img_down.thumbnail([600,600], Image.ANTIALIAS)
             app.logger.debug("thumbnail create from returned image: %s seconds ---" % (time.time() - upload_start_time))
             preview_img_down.save(download_preview_file_path + download_file_name)
             app.logger.debug("image.save thumbnail of returned image: %s seconds ---" % (time.time() - upload_start_time))
             preview_img_down.close()
         else:
-            returned_image.save(download_preview_file_path + download_file_name)
+            foreground_pil.save(download_preview_file_path + download_file_name)
 
         print('Sending file to browser......')
         # if img_size_down > .25:
@@ -124,11 +168,12 @@ def upload():
         # else:
         #     download_html_path = '/static/downloads/' + download_file_name
         download_html_path = '/static/downloads/' + download_file_name
-        returned_img.close()
+        foreground_pil.close()
 
     return download_html_path
     #return send_file('./static/upload.png', mimetype='image/png', as_attachment='True')
     #return render_template('index.html')
+
 
 
 
@@ -154,5 +199,5 @@ def receive_image():
     return send_file(img_io, mimetype='image/png', as_attachment='True', attachment_filename='upload.png')
 
 if __name__ == '__main__':
-    #app.run(host='127.0.0.1', port='5000')
-    app.run(host='0.0.0.0')
+    app.run(host='127.0.0.1', port='5000')
+    #app.run(host='0.0.0.0')
