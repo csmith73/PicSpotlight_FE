@@ -103,8 +103,8 @@ def upload():
         print('3')
         print(upload_img.size)
         print('Sending image for background removal....')
-        #r = requests.post('http://127.0.0.1:5001/remove_background_api', files={'file': img_io.getvalue()})
-        r = requests.post('http://api.picspotlight.com/remove_background_api', files={'file': img_io.getvalue()})
+        r = requests.post('http://127.0.0.1:5001/remove_background_api', files={'file': img_io.getvalue()})
+        #r = requests.post('http://api.picspotlight.com/remove_background_api', files={'file': img_io.getvalue()})
         app.logger.debug("post request complete: %s seconds ---" % (time.time() - upload_start_time))
         print('Received response back from server.......')
         print(r.content)
@@ -151,12 +151,14 @@ def upload():
         width, height = foreground_pil.size
         img_size_down = (width * height) / 1000000
         print(img_size_down)
+        foreground_pil = foreground_pil.rotate(270)
         foreground_pil.save(download_file_path + download_file_name)
         app.logger.debug("image.save returned image: %s seconds ---" % (time.time() - upload_start_time))
         if img_size_down > .25:
             preview_img_down = foreground_pil
             preview_img_down.thumbnail([600,600], Image.ANTIALIAS)
             app.logger.debug("thumbnail create from returned image: %s seconds ---" % (time.time() - upload_start_time))
+
             preview_img_down.save(download_preview_file_path + download_file_name)
             app.logger.debug("image.save thumbnail of returned image: %s seconds ---" % (time.time() - upload_start_time))
             preview_img_down.close()
@@ -200,5 +202,5 @@ def receive_image():
     return send_file(img_io, mimetype='image/png', as_attachment='True', attachment_filename='upload.png')
 
 if __name__ == '__main__':
-    #app.run(host='127.0.0.1', port='5000')
-    app.run(host='0.0.0.0')
+    app.run(host='127.0.0.1', port='5000')
+    #app.run(host='0.0.0.0')
