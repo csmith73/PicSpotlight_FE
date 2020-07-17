@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
+<head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
@@ -17,82 +17,121 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.24.1/feather.min.js"
             crossorigin="anonymous"></script>
 </head>
-    <body>
-        <div id="layoutDefault">
-            <div id="layoutDefault_content">
-                <main>
-                    <nav class="navbar navbar-marketing navbar-expand-lg bg-white navbar-light">
-                        <div class="container">
-                            <a class="navbar-brand text-dark" href="/">PicSpotlight</a><button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i data-feather="menu"></i></button>
-                            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                                <ul class="navbar-nav ml-auto mr-lg-5">
-                                    <li class="nav-item"><a class="nav-link" href="index.html">Home </a></li>
-                                    <li class="nav-item dropdown dropdown-xl no-caret"></li>
-                                </ul>
-                                <a class="btn-primary btn rounded-pill px-4 ml-lg-4" href="https://shop.startbootstrap.com/sb-ui-kit-pro">Log In<i class="fas fa-arrow-right ml-1"></i></a>
-                            </div>
-                        </div>
-                    </nav>
-                    <header class="page-header page-header-dark bg-img-repeat bg-secondary" style='background-image: url("assets/img/pattern-shapes.png")'>
-                        <div class="page-header-content">
-                            <div class="container">
-                                <div class="row align-items-center">
-                                    <div class="col-lg-6">
-                                        <div class="card rounded-lg text-dark">
-                                            <div class="card-header py-4">Create an account</div>
-                                            <div class="card-body">
-                                                <form>
-                                                    <div class="form-row">
-                                                        <div class="form-group col-md-6"><label class="small text-gray-600" for="firstName">First Name</label><input class="form-control rounded-pill" id="firstName" type="text" /></div>
-                                                        <div class="form-group col-md-6"><label class="small text-gray-600" for="lastName">Last Name</label><input class="form-control rounded-pill" id="lastName" type="text" /></div>
-                                                    </div>
-                                                    <div class="form-group"><label class="small text-gray-600" for="email">Email address</label><input class="form-control rounded-pill" id="email" type="email" /></div>
-                                                    <div class="form-group"><label class="small text-gray-600" for="password">Password</label><input class="form-control rounded-pill" id="password" type="password" /></div>
-                                                    <div class="form-group"><label class="small text-gray-600" for="confpassword">Confirm Password</label><input class="form-control rounded-pill" id="confpassword" type="password" /></div>
-                                                    <button class="btn btn-primary btn-marketing btn-block rounded-pill mt-4" type="submit">Download Now</button>
-                                                </form>
+<body>
+<div id="layoutDefault">
+    <div id="layoutDefault_content">
+        <main>
+            <nav class="navbar navbar-marketing navbar-expand-lg bg-white navbar-light">
+                <div class="container">
+                    <a class="navbar-brand text-dark" href="/">PicSpotlight</a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse"
+                            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation"><i data-feather="menu"></i></button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ml-auto mr-lg-5">
+                            <li class="nav-item"><a class="nav-link" href={{ url_for('index') }}>Home </a></li>
+                            <li class="nav-item dropdown dropdown-xl no-caret"></li>
+                        </ul>
+                        <a class="btn-primary btn rounded-pill px-4 ml-lg-4" href={{ url_for('login') }}>Log In<i
+                                class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+            </nav>
+            <header class="page-header page-header-dark bg-img-repeat bg-secondary"
+                    style='background-image: url("/static/assets/img/pattern-shapes.png")'>
+                <div class="page-header-content">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6">
+                                <div class="card rounded-lg text-dark">
+                                    <div class="card-header py-4">Create an account</div>
+                                    <div class="card-body">
+                                        <form action="" method="post">
+                                            {{ form.hidden_tag() }}
+                                            <div class="form-row">
+                                                <div class="form-group col-md-6"><label class="small text-gray-600"
+                                                                                        for="firstName">First
+                                                    Name</label>{{ form.firstname(size=32, class='form-control rounded-pill') }}<br>
+                                                {% for error in form.firstname.errors %}
+                                                    <span style="color: red;">[{{ error }}]</span>
+                                                {% endfor %}</div>
+                                                <div class="form-group col-md-6"><label class="small text-gray-600"
+                                                                                        for="lastName">Last Name</label>{{ form.lastname(size=32, class='form-control rounded-pill') }}<br>
+                                                {% for error in form.lastname.errors %}
+                                                    <span style="color: red;">[{{ error }}]</span>
+                                                {% endfor %}
+                                                </div>
                                             </div>
-                                        </div>
+                                            <div class="form-group"><label class="small text-gray-600" for="email">Email
+                                                address</label>{{ form.email(size=64, class='form-control rounded-pill') }}<br>
+                                                {% for error in form.email.errors %}
+                                                    <span style="color: red;">[{{ error }}]</span>
+                                                {% endfor %}</div>
+                                            <div class="form-group"><label class="small text-gray-600" for="password">Password</label>{{ form.password(size=32, class='form-control rounded-pill') }}<br>
+                                                {% for error in form.password.errors %}
+                                                    <span style="color: red;">[{{ error }}]</span>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="form-group"><label class="small text-gray-600"
+                                                                           for="confpassword">Confirm
+                                                Password</label>{{ form.password2(size=32, class='form-control rounded-pill') }}<br>
+                                                {% for error in form.password2.errors %}
+                                                    <span style="color: red;">[{{ error }}]</span>
+                                                {% endfor %}</div>
+                                            <button class="btn btn-primary btn-marketing btn-block rounded-pill mt-4"
+                                                    type="submit">Create Account
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="svg-border-angled text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" fill="currentColor"><polygon points="0,100 100,0 100,100"></polygon></svg>
-                        </div>
-                    </header>
-                </main>
-            </div>
-            <div id="layoutDefault_footer">
-                <footer class="footer pt-10 pb-5 mt-auto bg-white footer-light">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-3">
-                                <div class="footer-brand">PicSpotlight</div>
-                                <div class="icon-list-social mb-5">
-                                    <a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-instagram"></i></a><a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-facebook"></i></a><a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-github"></i></a><a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-twitter"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                        <hr class="my-5" />
-                        <div class="row align-items-center">
-                            <div class="col-md-6 small">Copyright &copy; PicSpotlight 2020</div>
-                            <div class="col-md-6 text-md-right small">
-                                <a href="javascript:void(0);">Privacy Policy</a>
-                                &middot;
-                                <a href="javascript:void(0);">Terms &amp; Conditions</a>
-                            </div>
+                    </div>
+                </div>
+                <div class="svg-border-angled text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"
+                         fill="currentColor">
+                        <polygon points="0,100 100,0 100,100"></polygon>
+                    </svg>
+                </div>
+            </header>
+        </main>
+    </div>
+    <div id="layoutDefault_footer">
+        <footer class="footer pt-10 pb-5 mt-auto bg-white footer-light">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3">
+                        <div class="footer-brand">PicSpotlight</div>
+                        <div class="icon-list-social mb-5">
+                            <a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-instagram"></i></a><a
+                                class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-facebook"></i></a><a
+                                class="icon-list-social-link" href="javascript:void(0);"><i
+                                class="fab fa-github"></i></a><a class="icon-list-social-link"
+                                                                 href="javascript:void(0);"><i
+                                class="fab fa-twitter"></i></a>
                         </div>
                     </div>
-                </footer>
+                </div>
+                <hr class="my-5"/>
+                <div class="row align-items-center">
+                    <div class="col-md-6 small">Copyright &copy; PicSpotlight 2020</div>
+                    <div class="col-md-6 text-md-right small">
+                        <a href="javascript:void(0);">Privacy Policy</a>
+                        &middot;
+                        <a href="javascript:void(0);">Terms &amp; Conditions</a>
+                    </div>
+                </div>
             </div>
-        </div>
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+        </footer>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
         crossorigin="anonymous"></script>
 <script src="/static/js/scripts.js"></script>
 <script src="/static/js/dropzone.js"></script>
 <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    </body>
+</body>
 </html>

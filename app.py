@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for
+from flask import Flask, render_template, request, send_file, redirect, url_for, flash
 import os
 import requests
 import logging
@@ -12,18 +12,87 @@ import io
 import numpy as np
 import cv2
 from numpy.lib.npyio import NpzFile
+from flask_login import LoginManager, current_user, login_user, UserMixin
+import sqlite3
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
 
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = basedir + '\Databases'
+
+class Config(object):
+    DATABASE = './Databases/users.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'users.db')
+    #SQLALCHEMY_DATABASE_URI = 'sqlite:///' + DATABASE
+    print(SQLALCHEMY_DATABASE_URI)
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 app = Flask(__name__)
+app.config.from_object(Config)
+app.secret_key = os.urandom(12)
+login = LoginManager(app)
+db = SQLAlchemy(app)
+
+
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    #username = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    firstname = db.Column(db.String(64), index=True, unique=True)
+    lastname = db.Column(db.String(64), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+        print(self.password_hash)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return '<User {}>'.format(self.username)
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Log In')
+
+class RegistrationForm(FlaskForm):
+    firstname = StringField('firstname', validators=[DataRequired()])
+    lastname = StringField('lastname', validators=[DataRequired()])
+    #username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Register')
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different username.')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different email address.')
+
+
+
 if __name__ != '__main__':
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
-# gunicorn_error_logger = logging.getLogger('gunicorn.error')
-# app.logger.handlers.extend(gunicorn_error_logger.handlers)
-# app.logger.setLevel(logging.DEBUG)
-# app.logger.debug('this will show in the log')
+
+
 
 upload_file_path = './static/uploads/'
 download_file_path = './static/downloads/'
@@ -31,17 +100,54 @@ download_preview_file_path = './static/downloads_preview/'
 upload_preview_file_path = './static/uploads_preview/'
 global_file_name = ''
 
+
+
+
+
+
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/register')
+@app.route('/register', methods=['GET','POST'])
 def register():
-    return render_template('register.html')
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(email=form.email.data, firstname=form.firstname.data, lastname=form.lastname.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    print(form.errors)
+    print(form.validate_on_submit())
+    print(form.username.data)
+    if form.validate_on_submit():
+        print('submit function called...................')
+        user = User.query.filter_by(email=form.username.data).first()
+        #user.set_password(form.password.data)
+        if user is None or not user.check_password(form.password.data):
+            print('Invalid username or password.....................')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        return redirect(url_for('index'))
+    return render_template('login.html', title='Sign In', form=form)
+
 
 @app.route('/logs')
 def logs():
