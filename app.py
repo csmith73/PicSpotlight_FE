@@ -23,7 +23,8 @@ from werkzeug.security import check_password_hash
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-basedir = basedir + '\Databases'
+#basedir = basedir + '\Databases'
+basedir = os.path.join(basedir, 'Databases')
 
 class Config(object):
     DATABASE = './Databases/users.db'
@@ -38,7 +39,7 @@ app.config.from_object(Config)
 app.secret_key = os.urandom(12)
 login = LoginManager(app)
 db = SQLAlchemy(app)
-
+app.logger.debug(Config.SQLALCHEMY_DATABASE_URI)
 
 
 class User(db.Model, UserMixin):
@@ -283,7 +284,9 @@ def upload():
     #return send_file('./static/upload.png', mimetype='image/png', as_attachment='True')
     #return render_template('index.html')
 
-
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
 
 
 
